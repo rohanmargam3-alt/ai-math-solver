@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧮 Math Solver Bot</title>
+
+    <!-- Math.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .chat {
+            background: white;
+            height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .msg {
+            padding: 12px 18px;
+            margin: 10px 0;
+            border-radius: 20px;
+            max-width: 80%;
+        }
+
+        .user {
+            background: #4f46e5;
+            color: white;
+            margin-left: auto;
+        }
+
+        .bot {
+            background: #f1f5f9;
+        }
+
+        .input-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 20px;
+            border: 2px solid #ddd;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 20px;
+            background: #10b981;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🧮 Math Solver Bot</h1>
+
+    <div id="chat" class="chat">
+        <div class="msg bot">
+            Hi! Try:<br>
+            2+2<br>
+            solve x+3=7<br>
+            derivative(x^2)
+        </div>
+    </div>
+
+    <div class="input-box">
+        <input id="input" placeholder="Type a math problem...">
+        <button onclick="send()">Send</button>
+    </div>
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+
+function add(text, type) {
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.innerHTML = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function solveEquation(text) {
+    try {
+        let eq = text.replace("solve", "").trim();
+        let [l, r] = eq.split("=");
+
+        let expr = `(${l})-(${r})`;
+
+        let match = expr.match(/([+-]?\d*)x([+-]?\d*)/);
+
+        if (match) {
+            let a = match[1] === "" ? 1 : (match[1] === "-" ? -1 : Number(match[1]));
+            let b = match[2] === "" ? 0 : Number(match[2]);
+            return "x = " + (-b / a);
+        }
+
+        if (expr.includes("x^2")) {
+            let sol = math.solve(expr, "x");
+            return "x = " + sol.join(", ");
+        }
+
+    } catch {}
+    return null;
+}
+
+function botReply(text) {
+    text = text.toLowerCase();
+
+    // derivative
+    if (text.includes("derivative")) {
+        try {
+            let exp = text.replace("derivative", "").replace(/[()]/g, "");
+            return "Derivative: " + math.derivative(exp, "x");
+        } catch {
+            return "Error in derivative";
+        }
+    }
+
+    // equation
+    if (text.startsWith("solve")) {
+        let ans = solveEquation(text);
+        if (ans) return ans;
+        return "Can't solve";
+    }
+
+    // normal math
+    try {
+        return text + " = " + math.evaluate(text);
+    } catch {
+        return "Try valid math input";
+    }
+}
+
+function send() {
+    let text = input.value.trim();
+    if (!text) return;
+
+    add(text, "user");
+    input.value = "";
+
+    setTimeout(() => {
+        add(botReply(text), "bot");
+    }, 400);
+}
+
+input.addEventListener("keypress", e => {
+    if (e.key === "Enter") send();
+});
+</script>
+
+</body>
+</html>
